@@ -56,7 +56,7 @@ public class CreateDeveloper {
 
         // -> 자주 쓰는 방법 : fromEntity라는 이름으로 developer Entity를 받아서
         // 바로 Response를 만들어주는 static 메소드 사용
-        public static Response fromEntity(Developer developer) {
+        public static Response fromEntity(@NonNull Developer developer) {
             return Response.builder()
                     .developerLevel(developer.getDeveloperLevel())
                     .developerSkillType(developer.getDeveloperSkillType())

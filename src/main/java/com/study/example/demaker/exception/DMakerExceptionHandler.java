@@ -10,14 +10,13 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import static com.study.example.demaker.exception.DMakerErrorCode.INTERNAL_SERVER_ERROR;
 import static com.study.example.demaker.exception.DMakerErrorCode.INVALID_REQUEST;
 
 @Slf4j
 @ControllerAdvice
-public class DMakerExceptionHandler extends ResponseEntityExceptionHandler {
+public class DMakerExceptionHandler{
     @ExceptionHandler(DMakerException.class)
     @ResponseBody
     public DMakerErrorResponse handleDMakerException(

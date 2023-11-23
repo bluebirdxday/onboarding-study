@@ -31,11 +31,40 @@ public class DMakerService {
     private final RetiredDeveloperRepository retiredDeveloperRepository;
 
     @Transactional
-    public CreateDeveloper.Response createDeveloper(CreateDeveloper.Request request){
+    public CreateDeveloper.Response createDeveloper(
+            CreateDeveloper.Request request
+    ){
 
         validateCreateDeveloperRequest(request);
         // .builder() => Developer Entity에 @Builder 어노테이션을 적어놔서 쓸 수 있게 됨
-        Developer developer = Developer.builder()
+//
+//                 (before)
+//                 Developer developer = Developer.builder()
+//                .developerLevel(request.getDeveloperLevel())
+//                .developerSkillType(request.getDeveloperSkillType())
+//                .experienceYears(request.getExperienceYears())
+//                .memberId(request.getMemberId())
+//                .status(StatusCode.EMPLOYED)
+//                .name(request.getName())
+//                .age(request.getAge())
+//                .build();
+
+        // (before2) Developer developer = createDeveloperFromRequest(request);
+        // entity 생성
+        // 빌드를 완료한 developer를 엔티티 객체를 하나 만들어서
+        // 디벨로퍼 리파지토리에서 save를 통해(영속화) db에 저장하는 로직
+
+        // (before2) developerRepository.save(developer);
+        // developerRepository를 통해 db에 영속화
+
+        return CreateDeveloper.Response.fromEntity(
+                developerRepository.save(createDeveloperFromRequest(request)
+                ));
+    }
+
+
+    private Developer createDeveloperFromRequest(CreateDeveloper.Request request){
+        return Developer.builder()
                 .developerLevel(request.getDeveloperLevel())
                 .developerSkillType(request.getDeveloperSkillType())
                 .experienceYears(request.getExperienceYears())
@@ -44,19 +73,16 @@ public class DMakerService {
                 .name(request.getName())
                 .age(request.getAge())
                 .build();
-        // entity 생성
-        // 빌드를 완료한 developer를 엔티티 객체를 하나 만들어서
-        // 디벨로퍼 리파지토리에서 save를 통해(영속화) db에 저장하는 로직
-
-        developerRepository.save(developer);
-        // developerRepository를 통해 db에 영속화
-
-        return CreateDeveloper.Response.fromEntity(developer);
     }
 
+
     private void validateCreateDeveloperRequest(
+            // (before) CreateDeveloper.Request request
             @NonNull CreateDeveloper.Request request){
         // 비지니스 유효성 검증 시행
+        request.getDeveloperLevel().validateExperienceYears(
+                request.getExperienceYears()
+        );
 
         DeveloperLevel developerLevel = request.getDeveloperLevel();
         Integer experienceYears = request.getExperienceYears();
@@ -66,18 +92,10 @@ public class DMakerService {
                     throw new DMakerException(DMakerErrorCode.DUPLICATED_MEMBER_ID);
                 });
 
-        if(developerLevel == DeveloperLevel.SENIOR
-            && experienceYears < 10){
-            throw new DMakerException(DMakerErrorCode.LEVEL_EXPERIENCE_YEAR_NO_MATCHED);
-        }
-
-        if(developerLevel == DeveloperLevel.JUNIOR
-            && (experienceYears < 4 || request.getExperienceYears() > 10)){
-            throw new DMakerException(DMakerErrorCode.LEVEL_EXPERIENCE_YEAR_NO_MATCHED);
-        }
-
     }
 
+    // (before) transactional 없었음
+    @Transactional
     public List<DeveloperDto> getAllEmployedDevelopers() {
         // 받아온 developer를 Developer DTO로 바꿔주는 맵핑
         // .원하는 타입으로 (LIST DeveloperDto 타입)으로 변경
@@ -86,34 +104,73 @@ public class DMakerService {
                 .collect(Collectors.toList());
     }
 
-    public DeveloperDetailDto DeveloperDetailDto(String memberId) {
+    @Transactional
+    public DeveloperDetailDto getDeveloperDetail(String memberId) {
         // findByMemberId를 통해서 memberId로 developer Entity를 가져오고 
         // 가져온 entity를 맵 함수를 통해 fromEntity 메소드를 통해가지고 
         // developer Entity를 DeveloperDetailDto로 변환해주고 
         // DeveloperDetailDto를 변환해주는데 developer Entity를 못 가져왔을 때 예외처리
-        return developerRepository.findByMemberId(memberId)
-                .map(DeveloperDetailDto::fromEntity)
-                .orElseThrow(()-> new DMakerException(NO_DEVELOPER));
+
+//        (before)
+//        return developerRepository.findByMemberId(memberId)
+//                .map(DeveloperDetailDto::fromEntity)
+//                .orElseThrow(()-> new DMakerException(NO_DEVELOPER));
+
+        return DeveloperDetailDto.fromEntity(getDeveloperByMemberId(memberId));
+
                 // 값이 있으면 값 자체를 get 해서 받아 넘겨주고 
                 // 값이 없으면 특정 동작을 수행해주게 됨
+    }
+
+    private Developer getDeveloperByMemberId(String memberId){
+        return developerRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new DMakerException(NO_DEVELOPER));
     }
 
     @Transactional
     public DeveloperDetailDto editDeveloper(
             String memberId, EditDeveloper.Request request
     ) {
-        Developer developer = developerRepository.findByMemberId(memberId)
-                .orElseThrow(
-                        () -> new DMakerException(NO_DEVELOPER)
-                );
+
+        request.getDeveloperLevel().validateExperienceYears(
+                request.getExperienceYears()
+        );
+
+//        (before)
+//         Developer developer = developerRepository.findByMemberId(memberId)
+//                .orElseThrow(
+//                   () -> new DMakerException(NO_DEVELOPER));
+
+
+//     1.   Developer developer = getDeveloperByMemberId(memberId);
+
+//        (before)
+//        developer.setDeveloperLevel(request.getDeveloperLevel());
+//        developer.setDeveloperSkillType(request.getDeveloperSkillType());
+//        developer.setExperienceYears(request.getExperienceYears());
+//        developer.setName(request.getName());
+//        developer.setAge(request.getAge());
+
+//      1.  setDeveloperFromRequest(request, developer);
+//      2.  setDeveloperFromRequest(request, getDeveloperByMemberId(memberId));
+
+//      2.  return DeveloperDetailDto.fromEntity(developer);
+
+        return DeveloperDetailDto.fromEntity(getUpdatedDeveloperFromRequest(request, getDeveloperByMemberId(memberId)));
+
+
+    }
+
+    private Developer getUpdatedDeveloperFromRequest(EditDeveloper.Request request, Developer developer) {
         developer.setDeveloperLevel(request.getDeveloperLevel());
         developer.setDeveloperSkillType(request.getDeveloperSkillType());
         developer.setExperienceYears(request.getExperienceYears());
         developer.setName(request.getName());
         developer.setAge(request.getAge());
 
-        return DeveloperDetailDto.fromEntity(developer);
+        return developer;
     }
+
 
     // 단 한번의 db 조작이 있더라도 @Transactional 어노테이션 넣어주기
     // -> Dirty Checking을 통한 자동 데이터 업데이트도 이 트랜잭션 어노테이션을 통해 이루어짐
