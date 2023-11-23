@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum DmakerErrorCode {
+public enum DMakerErrorCode {
     NO_DEVELOPER("해당되는 개발자가 없습니다"),
     DUPLICATED_MEMBER_ID("MemeberId가 중복되는 개발자가 있습니다."),
     LEVEL_EXPERIENCE_YEAR_NO_MATCHED("개발자 레벨과 연차가 맞지 않습니다."),

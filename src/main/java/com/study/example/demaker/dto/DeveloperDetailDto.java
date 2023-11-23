@@ -27,7 +27,7 @@ public class DeveloperDetailDto {
                 .developerSkillType(developer.getDeveloperSkillType())
                 .experienceYears(developer.getExperienceYears())
                 .memberId(developer.getMemberId())
-                .statusCode(developer.getStatusCode())
+                .statusCode(developer.getStatus())
                 .name(developer.getName())
                 .age(developer.getAge())
                 .build();

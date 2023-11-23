@@ -38,7 +38,7 @@ public class Developer {
     private Integer age;
 
     @Enumerated(EnumType.STRING)
-    private StatusCode statusCode;
+    private StatusCode status;
 
     @CreatedDate
     private LocalDateTime createAt;

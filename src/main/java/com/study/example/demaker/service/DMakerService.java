@@ -8,18 +8,19 @@ import com.study.example.demaker.dto.EditDeveloper;
 import com.study.example.demaker.entity.Developer;
 import com.study.example.demaker.entity.RetiredDeveloper;
 import com.study.example.demaker.exception.DMakerException;
-import com.study.example.demaker.exception.DmakerErrorCode;
+import com.study.example.demaker.exception.DMakerErrorCode;
 import com.study.example.demaker.repository.DeveloperRepository;
 import com.study.example.demaker.repository.RetiredDeveloperRepository;
 import com.study.example.demaker.type.DeveloperLevel;
 import jakarta.transaction.Transactional;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.study.example.demaker.exception.DmakerErrorCode.NO_DEVELOPER;
+import static com.study.example.demaker.exception.DMakerErrorCode.NO_DEVELOPER;
 
 // D-Maker의 서비스 레이어 역할을 함, 비즈니스 로직 담당
 @Service
@@ -39,7 +40,7 @@ public class DMakerService {
                 .developerSkillType(request.getDeveloperSkillType())
                 .experienceYears(request.getExperienceYears())
                 .memberId(request.getMemberId())
-                .statusCode(StatusCode.EMPLOYED)
+                .status(StatusCode.EMPLOYED)
                 .name(request.getName())
                 .age(request.getAge())
                 .build();
@@ -53,7 +54,8 @@ public class DMakerService {
         return CreateDeveloper.Response.fromEntity(developer);
     }
 
-    private void validateCreateDeveloperRequest(CreateDeveloper.Request request){
+    private void validateCreateDeveloperRequest(
+            @NonNull CreateDeveloper.Request request){
         // 비지니스 유효성 검증 시행
 
         DeveloperLevel developerLevel = request.getDeveloperLevel();
@@ -61,17 +63,17 @@ public class DMakerService {
 
         developerRepository.findByMemberId(request.getMemberId())
                 .ifPresent((developer) -> {
-                    throw new DMakerException(DmakerErrorCode.DUPLICATED_MEMBER_ID);
+                    throw new DMakerException(DMakerErrorCode.DUPLICATED_MEMBER_ID);
                 });
 
         if(developerLevel == DeveloperLevel.SENIOR
             && experienceYears < 10){
-            throw new DMakerException(DmakerErrorCode.LEVEL_EXPERIENCE_YEAR_NO_MATCHED);
+            throw new DMakerException(DMakerErrorCode.LEVEL_EXPERIENCE_YEAR_NO_MATCHED);
         }
 
         if(developerLevel == DeveloperLevel.JUNIOR
             && (experienceYears < 4 || request.getExperienceYears() > 10)){
-            throw new DMakerException(DmakerErrorCode.LEVEL_EXPERIENCE_YEAR_NO_MATCHED);
+            throw new DMakerException(DMakerErrorCode.LEVEL_EXPERIENCE_YEAR_NO_MATCHED);
         }
 
     }
@@ -124,7 +126,7 @@ public class DMakerService {
                 .orElseThrow(()-> new DMakerException(NO_DEVELOPER));
         // 삭제할 developer의 정보를 가져오면서 간단한 Validation 체크까지 수행
 
-        developer.setStatusCode(StatusCode.RETIRED);
+        developer.setStatus(StatusCode.RETIRED);
 
         // 2. save into RetiredDeveloper
         RetiredDeveloper retiredDeveloper = RetiredDeveloper.builder()
